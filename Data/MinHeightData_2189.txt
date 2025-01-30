@@ -1,0 +1,5 @@
+CremonaReference,Discriminant,Point,Height,Provable
+2189a1,NA,NA,E1,NA
+
+2189a2,269,(-24 : 1/2*(-199*s - 1) : 1),0.889711585890539901370504765,0
+
