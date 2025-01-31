@@ -1,9 +1,9 @@
-/// Modify the code from MAGMA CPS to get an upper bound for all quadratic number fields.
+/// Modified code from MAGMA CPS to get an upper bound for all quadratic number fields.
 /// A lot of the code has been copied without modification from 'CPSHeightBounds code.rtf'
 
-USE_EXACT := 1 eq 1;
+USE_EXACT := true;
 
-////////////This is the part corresponding to Non-Archemedean valuation
+//////////// Non-Archimedean valuations
 
 /// This function has not been modified and computes 
 /// The function alpha_v from CPS paper:
@@ -36,7 +36,7 @@ end case;
 end function;
 
 /// This function has not been modified and computes 
-/// The contribution of a non-archemedean place, when the basefield of the curve is Q
+/// The contribution of a non-Archimedean place, when the basefield of the curve is Q
 
 function CPSLocalNonArch_Q(E, P)
 /*
@@ -51,7 +51,7 @@ return Log(P) *  alpha_v(localdata[4],localdata[5])
 end function;
 
 /// This function has not been modified and computes 
-/// The contribution of a non-archemedean place, when the basefield of the curve is (here) a quadratic extension
+/// The contribution of a non-Archimedean place, when the basefield of the curve is (here) a quadratic extension
 
 function CPSLocalNonArch_NF(E, P)
 /*
@@ -70,58 +70,58 @@ end function;
 /// This function computes the smallest non-square module p for a given prime p
 
 function SmallestNonSquare(p)
-  e:=1;
-  k:=1;
-  while k ne -1 do
-    e:=e+1;
-    k:=KroneckerSymbol(e,p);
-  end while;
-  return e;
-  end function;
-    
+    e:=1;
+    k:=1;
+    while k ne -1 do
+        e:=e+1;
+        k:=KroneckerSymbol(e,p);
+    end while;
+    return e;
+    end function;
+        
 
 
 /// This function computes the maximal possible contribution for places above a fixed prime p, when p is an odd prime
 function CPSOddPrimes(E,p)
-  e:=SmallestNonSquare(p);
+    e:=SmallestNonSquare(p);
 // LB is the list of possible contributions, depending on the place
-  LB:=[];
+    LB:=[];
 // Contribution if K_v is isomorphic to Q_p
-  LB:=Append(LB,2*CPSLocalNonArch_Q(E,p));
+    LB:=Append(LB,2*CPSLocalNonArch_Q(E,p));
 // Contribution Q_p(sqrt(n) for n in [p,e*p,e])
-  Lp:=[p,e*p,e];
-  for n in Lp do
+    Lp:=[p,e*p,e];
+    for n in Lp do
 // Generating the corresponding number field
-    Kn:=QuadraticField(n);
-    En:=BaseChange(E,Kn);
+        Kn:=QuadraticField(n);
+        En:=BaseChange(E,Kn);
 // Generating an ideal above the prime p
-    Pn:=Ideal(Decomposition(Kn, p)[1][1]);
+        Pn:=Ideal(Decomposition(Kn, p)[1][1]);
 // Appending the contribution to the list
-    LB:=Append(LB, CPSLocalNonArch_NF(En,Pn));
-    end for;
-  m1,m2:=Max(LB);
+        LB:=Append(LB, CPSLocalNonArch_NF(En,Pn));
+        end for;
+    m1,m2:=Max(LB);
 // Return the maximal possible contribution
-  return (m1);
-  end function;
+    return (m1);
+    end function;
 
 /// This function computes the maximal possible contribution for places above 2
 /// works similarly than the code before
 
 function CPSEvenPrime(E,p)
-  L2:=[3,5,-1,2,6,10,-2];
-  LB:=[];
-  LB:=Append(LB,2*CPSLocalNonArch_Q(E,2));
-  for n in L2 do
-    Kn:=QuadraticField(n);
-    En:=BaseChange(E,Kn);
-    Pn:=Ideal(Decomposition(Kn, p)[1][1]);
-    LB:=Append(LB, CPSLocalNonArch_NF(En,Pn));
-    end for;
-  m1,m2:=Max(LB);
-  return (m1);
-  end function;
-  
-///////////////////////// Part corresponding to Archemdean valuations
+    L2:=[3,5,-1,2,6,10,-2];
+    LB:=[];
+    LB:=Append(LB,2*CPSLocalNonArch_Q(E,2));
+    for n in L2 do
+        Kn:=QuadraticField(n);
+        En:=BaseChange(E,Kn);
+        Pn:=Ideal(Decomposition(Kn, p)[1][1]);
+        LB:=Append(LB, CPSLocalNonArch_NF(En,Pn));
+        end for;
+    m1,m2:=Max(LB);
+    return (m1);
+    end function;
+    
+///////////////////////// Part corresponding to Archimdean valuations
 
 
 //------------------------------------------
@@ -158,29 +158,29 @@ require Type(K) eq FldRat or Type(K) eq FldNum: "Base field must be Q or a numbe
     numfld := ISA(Type(K), FldNum);
     // print "CPSReal(): initial precision is", prec;
     while true do
-  R := RealField(prec);
-  if numfld then    // embed in R using i'th embedding of K
-      rbs := [ R!Conjugate(b, i : Precision := prec) : b in bs ];
-  else
-      rbs := ChangeUniverse(bs, R);
-  end if;
-  b2, b4, b6, b8 := Explode(rbs);
-  f := Polynomial([  b6,  2*b4,  b2,     4      ]);
-  g := Polynomial([ -b8, -2*b6, -b4,     0,  1  ]);
-  F := Polynomial([   0,     4,  b2,  2*b4,  b6 ]);
-  G := Polynomial([   1,     0, -b4, -2*b6, -b8 ]);
-  de := de_const(f,g);
-  dded := de_const(F,G);
-  del_recip := (#de eq 0 select dded[2] else Max(de[2], dded[2]));
-  eps_recip := (#de eq 0 select dded[1] else Min(de[1], dded[1]));
-  if del_recip gt 0 and eps_recip gt 0 then
-      del := 1/del_recip;
-      eps := 1/eps_recip;
-      break;
-  end if;
+    R := RealField(prec);
+    if numfld then      // embed in R using i'th embedding of K
+        rbs := [ R!Conjugate(b, i : Precision := prec) : b in bs ];
+    else
+        rbs := ChangeUniverse(bs, R);
+    end if;
+    b2, b4, b6, b8 := Explode(rbs);
+    f := Polynomial([  b6,  2*b4,  b2,     4      ]);
+    g := Polynomial([ -b8, -2*b6, -b4,     0,  1  ]);
+    F := Polynomial([   0,     4,  b2,  2*b4,  b6 ]);
+    G := Polynomial([   1,     0, -b4, -2*b6, -b8 ]);
+    de := de_const(f,g);
+    dded := de_const(F,G);
+    del_recip := (#de eq 0 select dded[2] else Max(de[2], dded[2]));
+    eps_recip := (#de eq 0 select dded[1] else Min(de[1], dded[1]));
+    if del_recip gt 0 and eps_recip gt 0 then
+        del := 1/del_recip;
+        eps := 1/eps_recip;
+        break;
+    end if;
 
-  prec +:= 30;
-  // print "increasing precision to", prec;
+    prec +:= 30;
+    // print "increasing precision to", prec;
     end while;
 
     // "CPSReal returns", [ del, eps ];
@@ -220,7 +220,7 @@ function alphabeta(P,Q); // P,Q complex polynomials
 
  function E(z,eta); 
     return Max(&+[(eta^n)*Abs(Evaluate(Derivative(P,n),z))/Factorial(n) : n in [1..Degree(P)]],
-         &+[(eta^n)*Abs(Evaluate(Derivative(Q,n),z))/Factorial(n) : n in [1..Degree(Q)]]);
+           &+[(eta^n)*Abs(Evaluate(Derivative(Q,n),z))/Factorial(n) : n in [1..Degree(Q)]]);
  end function;
 
  RefineAlphaBound:=function (mu,S,al);
@@ -422,69 +422,69 @@ require Type(K) eq FldNum: "Base field must be a number field";
     // Convert to Magma's numbering where complex conjugate embeddings are consecutive
 
     function make_polys(bI)
-  b2,b4,b6,b8:=Explode(bI);
-  f:=Polynomial([b6,2*b4,b2,4]);
-  g:=Polynomial([-b8,-2*b6,-b4,0,1]);
-  F:=Polynomial(Reverse([b6,2*b4,b2,4,0]));
-  G:=Polynomial(Reverse([-b8,-2*b6,-b4,0,1]));
-  return f, g, F, G;
+    b2,b4,b6,b8:=Explode(bI);
+    f:=Polynomial([b6,2*b4,b2,4]);
+    g:=Polynomial([-b8,-2*b6,-b4,0,1]);
+    F:=Polynomial(Reverse([b6,2*b4,b2,4,0]));
+    G:=Polynomial(Reverse([-b8,-2*b6,-b4,0,1]));
+    return f, g, F, G;
     end function;
 
     bI := bInvariants(E);
     l, bIQ := CanChangeUniverse(bI, RationalField());
     if USE_EXACT and l then
-  f, g, F, G := make_polys(bIQ);
+    f, g, F, G := make_polys(bIQ);
 
 //  vprint CPS: "Do exact ab";
 //  vprint CPS: "f:", f;
 //  vprint CPS: "g:", g;
-  IndentPush();
+    IndentPush();
 //  vtime CPS:
 ab:=alphabeta_exact(f, g);
-  IndentPop();
+    IndentPop();
 //  vprint CPS: "Got ab:", ab;
 
 //  vprint CPS: "Do exact AB";
 //  vprint CPS: "F:", F;
 //  vprint CPS: "G:", G;
-  IndentPush();
+    IndentPush();
 //  vtime CPS:
 AB:=alphabeta_exact(F, G);
-  IndentPop();
+    IndentPop();
 //  vprint CPS: "Got AB:", AB;
     else
 
-  if i gt r then i:=2*i-r-1; end if;
+    if i gt r then i:=2*i-r-1; end if;
 
-  /*
-  b2,b4,b6,b8:=Explode([Conjugate(b,i) : b in bI]);
+    /*
+    b2,b4,b6,b8:=Explode([Conjugate(b,i) : b in bI]);
 
-  f:=Polynomial([b6,2*b4,b2,4]);
-  g:=Polynomial([-b8,-2*b6,-b4,0,1]);
-  F:=Polynomial(Reverse([b6,2*b4,b2,4,0]));
-  G:=Polynomial(Reverse([-b8,-2*b6,-b4,0,1]));
-  */
+    f:=Polynomial([b6,2*b4,b2,4]);
+    g:=Polynomial([-b8,-2*b6,-b4,0,1]);
+    F:=Polynomial(Reverse([b6,2*b4,b2,4,0]));
+    G:=Polynomial(Reverse([-b8,-2*b6,-b4,0,1]));
+    */
 
-  p := needed_alphabeta_prec(E, i);
-  bI := [Conjugate(b,i: Precision:=p) : b in bI];
-  f, g, F, G := make_polys(bI);
+    p := needed_alphabeta_prec(E, i);
+    bI := [Conjugate(b,i: Precision:=p) : b in bI];
+    f, g, F, G := make_polys(bI);
 
-  BF<i> := BaseRing(F);
-  //BF;
-  _<z> := PolynomialRing(BF);
+    BF<i> := BaseRing(F);
+    //BF;
+    _<z> := PolynomialRing(BF);
 //  vprint CPS: "Do ab";
-  Q := RationalField();
-  //"rf:", Polynomial([Q!Round(x): x in Eltseq(f)]);
-  //"rg:", Polynomial([Q!Round(x): x in Eltseq(g)]);
+    Q := RationalField();
+    //"rf:", Polynomial([Q!Round(x): x in Eltseq(f)]);
+    //"rg:", Polynomial([Q!Round(x): x in Eltseq(g)]);
 //  vtime CPS:
-  ab:=alphabeta(f,g);
+    ab:=alphabeta(f,g);
 //  vprint CPS: "Got ab:", ab;
 //  vprint CPS: "Do AB";
-  //"F:", F; "G:", G;
-  //"rF:", Polynomial([Q!Round(x): x in Eltseq(F)]);
-  //"rG:", Polynomial([Q!Round(x): x in Eltseq(G)]);
+    //"F:", F; "G:", G;
+    //"rF:", Polynomial([Q!Round(x): x in Eltseq(F)]);
+    //"rG:", Polynomial([Q!Round(x): x in Eltseq(G)]);
 //  vtime CPS:
-  AB:=alphabeta(F,G);
+    AB:=alphabeta(F,G);
 //  vprint CPS: "Got AB:", AB;
     end if;
 
@@ -503,7 +503,7 @@ require Type(K) eq FldNum: "Base field must be a number field";
 K:=BaseField(E);
 
     if 1 eq 1 then
-  return NewCPSComplex(E, i);
+    return NewCPSComplex(E, i);
     end if;
 
 // embed in C using i'th embedding of K, i between r+1 and r+s:
@@ -532,28 +532,30 @@ end function;
 
 
 function CPSUpperBoundQuadraticFields(E)
-// archimedean part corresponds to:
+// Archimedean part corresponds to:
 // we change the field of the curve to an imaginary field, so that we can compute the imaginary contribution
-  K1:=QuadraticField(-1);
-  E1:=BaseChange(E,K1);
-// We take the Maximum over the Archimedean contributions 
-  B:=Max(2*Log(CPSComplex(E1, 1)[2]), 2*Log(CPSReal(E,1)[2]))/6;
-// non-archimedean part corresponds to:
-  D:=Integers()!Discriminant(E);
+    K1:=QuadraticField(-1);
+    E1:=BaseChange(E,K1);
+// We take the Maximum over the Archimedean contributions   
+    B:=Max(2*Log(CPSComplex(E1, 1)[2]), 2*Log(CPSReal(E,1)[2]))/6;
+// non-Archimedean part corresponds to:
+    D:=Integers()!Discriminant(E);
 // If the discriminant is even, we take into account the valuations above 2
-  if D mod 2 eq 0 then
-    // Here we add the part corresponding to 2
-    B:=B+CPSEvenPrime(E,2);
-    exp:=Factorisation(D)[1][2];
+    if D mod 2 eq 0 then
+        // Here we add the part corresponding to 2
+        B:=B+CPSEvenPrime(E,2);
+        exp:=Factorisation(D)[1][2];
 // we make sure that 2 does not divide D anymore.
-    D:=Round(D*2^(-exp));
-  end if;
-  // This part corresponds to odd primes
-  for p in PrimeDivisors(D) do
-    B:=B+CPSOddPrimes(E,p);
-    end for;
-  return B;
+        D:=Round(D*2^(-exp));
+    end if;
+    // This part corresponds to odd primes
+    for p in PrimeDivisors(D) do
+        B:=B+CPSOddPrimes(E,p);
+        end for;
+    return B;
 end function;
+
+
 
 
 //////////////////////////////// Code for point search /////////////////////////
