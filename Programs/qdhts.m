@@ -630,6 +630,9 @@ function MinHeightE(E);
       minValueInit, minIndexInit := Min(hlist);
       B:=Ceiling(Exp(2*minValueInit+2*Log(2)+4*Be));
     // If there are no points of small height in our initial search, then our result is not provably the smallest
+    // NOTE: Because of a misunderstanding in the meaning of Magma's Bound parameter, this indicator is incorrect. It is still used for the initial search though
+      //     so we leave it in, but removed it from the output datasets (and re-running this will not output the Provable indicator)
+      //     To see which curves are provable, consult the "Provable_Curves" folder and data inside that folder.
     else B:=Ceiling(Exp(2*1+2*Log(2)+4*Be)); provable := 0;
     end if;
     LH:=LowHeightPoints(E, B, Be);
@@ -671,7 +674,7 @@ function GetHeightData(lbound, ubound);
       //If there are curves with this conductor, make a file to store the output
       SetOutputFile("MinHeightData_" cat Sprint(cond) cat ".txt");
       //Add headers for data
-      print("CremonaReference,Discriminant,Point,Height,Provable");
+      print("CremonaReference,Discriminant,Point,Height");
       //Create data for each elliptic curve
       for E in curves do
         MinHeightE(E);

@@ -1,3 +1,4 @@
-CremonaReference,Discriminant,Point,Height,Provable
-797a1,1,(0 : 1 : 1),0.531670993024983719488924716,1
+CremonaReference,Discriminant,Point,Height
+797a1,1,(0 : 1 : 1),0.531670993024983719488924716
+
 

@@ -1,0 +1,2 @@
+CremonaReference,Discriminant,Point,Height
+704b1,8,(1/2*s + 1 : -1/2*s - 2 : 1),0.209210228251283

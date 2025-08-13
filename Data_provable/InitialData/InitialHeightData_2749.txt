@@ -1,0 +1,2 @@
+CremonaReference,InitialHeight
+2749a1,0.771750613589652759438294279
